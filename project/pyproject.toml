@@ -1,0 +1,21 @@
+[project]
+name = "xiangqi-detector"
+version = "1.0.0"
+description = "A pipeline to detect Xiangqi pieces"
+requires-python = ">=3.11"
+dependencies = [
+    # Starter pack
+    "numpy",
+
+    # Deeplearning and Computer Vision
+    "torch",
+    "torchvision",
+    "opencv-python",
+
+    # Data processing
+    "pandas",
+    "yt-dlp[default]",
+
+    # Others
+    "dotenv",
+]

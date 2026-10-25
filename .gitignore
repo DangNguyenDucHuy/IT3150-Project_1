@@ -1,4 +1,20 @@
-
+# Hustack (unrelated to the project)
 /code.cpp
 /code.exe
 /code.o
+
+# Python
+.venv
+__pycache__
+project/src/xiangqi_detector.egg-info
+
+# Local dev
+.vscode
+
+# Secret
+.env
+
+# Auto-generated
+project/data/bronze
+project/data/silver
+project/data/gold
