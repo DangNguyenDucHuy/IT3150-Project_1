@@ -1,7 +1,9 @@
 import os
 import time
+import ast
 import pandas as pd
 from yt_dlp import YoutubeDL
+from yt_dlp.utils import download_range_func
 
 from config import DEBUG, PRODUCTION_ENV, DATA_SOURCES_YOUTUBE_VIDEOS_PATH, DATA_BRONZE_YOUTUBE_DIR, YTDLP_OPTIONS
 from .utils import normalize_title, generate_youtube_url_from_id, extract_ytdlp_info_fields
@@ -13,11 +15,16 @@ def youtube_collector(
     save_data: bool = PRODUCTION_ENV,
 ) -> pd.DataFrame:
     # Read input
-    df = pd.read_csv(input_path)
+    df = pd.read_csv(
+        input_path,
+        converters={
+            "download_ranges_seconds": ast.literal_eval,
+        }
+    )
     
-    # Output filename format: <video_id>.<ext>
     ytdlp_options = YTDLP_OPTIONS
     ytdlp_options["outtmpl"] = os.path.join(output_dir, "%(id)s.%(ext)s")
+    ytdlp_options["force_keyframes_at_cuts"] = True
     
     # Download videos
     for idx, row in df.iterrows():
@@ -32,10 +39,16 @@ def youtube_collector(
         save_path = ""
         elapsed_time = 0.0
         
+        # Only download sepecific ranges
+        ytdlp_options["download_ranges"] = download_range_func(
+            None,
+            ranges=df.loc[idx, "download_ranges_seconds"]
+        )
+        
         with YoutubeDL(ytdlp_options) as ydl:
             download_start_time = time.monotonic()
             
-            info = ydl.extract_info(video_url, download=False)
+            info = ydl.extract_info(video_url, download=save_data)
             
             if save_data:
                 elapsed_time = time.monotonic() - download_start_time
