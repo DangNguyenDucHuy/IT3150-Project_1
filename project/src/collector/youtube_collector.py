@@ -21,16 +21,33 @@ def youtube_collector(
     
     # Download videos
     for idx, row in df.iterrows():
-        video_url = generate_youtube_url_from_id(video_id=row["video_id"])
-        start_time = time.monotonic()
+        video_id = row.get("video_id")
+        if video_id is None:
+            if DEBUG:
+                print(f"[Error] At row {idx}: video_id not found")
+            continue
+        
+        video_url = generate_youtube_url_from_id(video_id=video_id)
+        
+        save_path = ""
+        elapsed_time = 0.0
         
         with YoutubeDL(ytdlp_options) as ydl:
-            info = ydl.extract_info(video_url, download=save_data)
-            elapsed_time = time.monotonic() - start_time
+            download_start_time = time.monotonic()
+            
+            info = ydl.extract_info(video_url, download=False)
+            
+            if save_data:
+                elapsed_time = time.monotonic() - download_start_time
+            
             extracted_info = extract_ytdlp_info_fields(info)
+
+            if save_data:
+                save_path = os.path.join(output_dir, f"{extracted_info["video_id"]}.{extracted_info["video_ext"]}")
         
         # Metadata
         df.at[idx, "video_url"] = video_url
+        df.at[idx, "title"] = extracted_info["title"]
         df.at[idx, "normalized_title"] = normalize_title(extracted_info["title"])
         df.at[idx, "filesize_bytes"] = extracted_info["filesize_bytes"]
         df.at[idx, "duration_seconds"] = extracted_info["duration_seconds"]
@@ -40,7 +57,7 @@ def youtube_collector(
         df.at[idx, "creator"] = extracted_info["creator"]
         df.at[idx, "video_ext"] = extracted_info["video_ext"]
         df.at[idx, "download_time_seconds"] = elapsed_time
-        df.at[idx, "save_path"] = os.path.join(output_dir, f"{extracted_info["video_id"]}.{extracted_info["video_ext"]}")
+        df.at[idx, "save_path"] = save_path
 
         if DEBUG:
             print(f"[Info] ID: {row["video_id"]} - Download time: {elapsed_time}")
