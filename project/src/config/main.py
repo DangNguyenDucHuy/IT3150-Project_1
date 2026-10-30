@@ -24,9 +24,12 @@ DATA_DIR = os.path.join(CWD, "data")
 # Folder lv2
 DATA_SOURCES_DIR = os.path.join(DATA_DIR, "sources")
 DATA_BRONZE_DIR = os.path.join(DATA_DIR, "bronze")
+DATA_SILVER_DIR = os.path.join(DATA_DIR, "silver")
 
 # Folder lv3
 DATA_BRONZE_YOUTUBE_DIR = os.path.join(DATA_BRONZE_DIR, "youtube")
+
+DATA_SILVER_VIDEOS_DIR = os.path.join(DATA_SILVER_DIR, "videos")
 
 
 

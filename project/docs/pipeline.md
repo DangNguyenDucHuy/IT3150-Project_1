@@ -20,6 +20,7 @@ project/
 |-- src/                            # Source code - Each subfolder is a partial pipeline
     |-- config/                         # Includes configs, global constants, schemas, ... of all pipelines
     |-- collector/                      # Partial pipeline - collecting data
+    |-- preprocessor/                   # Partial pipeline - preprocessing data
     |-- ...
     |-- main.py                         # Main pipeline - which simply run all the partial pipelines
 ```
@@ -49,6 +50,13 @@ project/
         |-- run.py                          # Run script - makedirs and check important env variables
 ```
 
+Run:
+```bash
+cd src
+python -m config.run
+```
+
+
 
 ### 2. Collector
 
@@ -56,7 +64,13 @@ project/
 project/
 |-- data/
     |-- sources/                        # Input
+        |-- youtube_videos.csv              # Metadata of Youtube data
+        |-- ...                             # Metadata of other sources...
     |-- bronze/                         # Output
+        |-- youtube/                        # Output of Youtube collector
+            |-- metadata.csv                    # Describe related information when downloading Youtube videos
+            |-- [video_id]_[range_idx].mp4  # Downloaded videos, named by Youtube's video id + download range order
+        |-- ...                             # Output of other collectors...
 |-- src/
     |-- config/
         |-- main.py                         # General config
@@ -67,6 +81,72 @@ project/
         |-- utils.py                        # Includes utils, helpers, ...
         |-- run.py                          # Run script - run all the collectors
 ```
+
+**Input**: `.csv` files provided manually to define the sources and their information required for next step
++ Youtube (`data/sources/youtube_videos.csv`):
+  + `video_id` - Video ID 
+  + `download_ranges` - list of tuple, each tuple has format `(start_seconds, end_seconds)`
+  > Why `download_ranges`?  
+  > --> In 1 video there are frames that don't have chessboard, or position of the chessboard isn't fixed, ... so each range contains frames that have fixed chessboard 
+  + `frame_positions` - list of list of tuple, each tuple has format `(start_x, end_x, start_y, end_y)` to capture only chessboard
+  > Why `list[list[tuple[...]]]`?  
+  > --> The first `list` corresponds to download ranges, the second list inside is defined because each frame may has 2 chessboards (2 matches played concurrently) so it define all the positions of chessboards.
+
+>[!NOTE]
+> This version requires providing `download_ranges` and `frame_positions` manually, which will be detected automatically in later version
+
+**Run**:
+```bash
+python -m collector.run
+```
+
+>[!NOTE]
+> Current main sources: Youtube, TikTok, Roboflow, HuggingFace
+> Each collector handles 1 source, corresponding to 1 `.csv` file defined in `sources/`
+
+**Output**: 
++ Youtube (`data/bronze/youtube/`):
+  + `metadata.csv` - describe related information when downloading Youtube videos
+  + `[video_id]_[range_idx].mp4` - downloaded videos (`range_idx` corresponds to range `download_ranges_seconds[range_idx]`)
+
+
+
+### 3. Preprocessor
+
+```bash
+project/
+|-- data/
+    |-- bronze/                         # Input
+        |-- youtube/                        # Youtube collector's output
+        |-- ...                             # Other collectors' output
+    |-- silver/                         # Output
+        |-- videos/                         # Video preprocessor's output
+        |-- images/                         # Image preprocessor's output
+
+|-- src/
+    |-- config/
+        |-- main.py                         # General config
+        |-- preprocessor.py                 # Specific config
+    |-- preprocessor/
+        |-- video_preprocessor.py           # Preprocessing video data
+        |-- image_preprocessor.py           # Preprocessing image data
+        |-- run.py                          # Run script - run all the preprocessors
+```
+
+**Input**:
++ Youtube (`data/bronze/youtube/`):
+  + `metadata.csv`
+  + `[video_id]_[range].mp4`
+
+**Run**:
+```bash
+python -m preprocessor.run
+```
+
+**Output**:
++ Video (`data/silver/videos/`):
+  + `metadata.csv` - Describe information of extracted frames
+  + `[video_id]_[range_idx]_[subframe_idx]/` - Download video `video_id`, at the download range `range_idx`, and cut out (extract) the partial frame `subframe_idx`. The folder contains ordered images, start from `0000001.png` (7 digits as defined in `config/`)
 
 
 

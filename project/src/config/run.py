@@ -2,8 +2,8 @@ import os
 
 from .main import (
     DEBUG, FFMPEG_PATH,
-    CWD, DATA_DIR, DATA_SOURCES_DIR, DATA_BRONZE_DIR,
-    DATA_BRONZE_YOUTUBE_DIR,
+    CWD, DATA_DIR, DATA_SOURCES_DIR, DATA_BRONZE_DIR, DATA_SILVER_DIR,
+    DATA_BRONZE_YOUTUBE_DIR, DATA_SILVER_VIDEOS_DIR,
 )
 
 
@@ -18,9 +18,11 @@ def setup_config():
     # Folder lv2
     os.makedirs(DATA_SOURCES_DIR, exist_ok=True)
     os.makedirs(DATA_BRONZE_DIR, exist_ok=True)
+    os.makedirs(DATA_SILVER_DIR, exist_ok=True)
     
     # Folder lv3
     os.makedirs(DATA_BRONZE_YOUTUBE_DIR, exist_ok=True)
+    os.makedirs(DATA_SILVER_VIDEOS_DIR, exist_ok=True)
 
     
     if DEBUG:
