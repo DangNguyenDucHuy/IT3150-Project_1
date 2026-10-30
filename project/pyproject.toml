@@ -6,6 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     # Starter pack
     "numpy",
+    "matplotlib",
 
     # Deeplearning and Computer Vision
     "torch",
